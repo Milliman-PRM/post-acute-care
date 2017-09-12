@@ -1,6 +1,6 @@
 ## post-acute-care
 
-Data transoformations and decorations to support post-acute care reporting
+Data transformations and decorations to support post-acute care reporting
 
 ## Development guidelines
 
