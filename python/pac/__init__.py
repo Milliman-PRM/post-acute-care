@@ -1,5 +1,5 @@
 """
-## CODE OWNERS: Kyle Baird
+## CODE OWNERS: Kyle Baird, Ben Copeland
 
 ### OBJECTIVE:
   Mark the root of the python library.
