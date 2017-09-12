@@ -2,6 +2,6 @@
 
 A non-exhaustive list of what has changed in a more readable form than a commit history.
 
-### v1.0.0
+### 1.0.0
 
   - Initial release of product component
