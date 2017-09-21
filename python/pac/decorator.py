@@ -32,14 +32,14 @@ _IP_MR_LINES = {
 
 
 def flag_index_admissions(
-        episodes: "typing.Iterable[typing.Tuple[datetime.date, datetime.date, datetime.date]]",
-    ) -> "typing.Iterable[typing.Tuple[datetime.date, datetime.date, str]]":
+        episodes: "typing.Iterable[typing.Tuple[str, datetime.date, datetime.date, datetime.date]]",
+    ) -> "typing.Iterable[typing.Tuple[str, datetime.date, datetime.date, str]]":
     """Determine if an admission should be considered an index admission"""
     admits_sorted = sorted(
         episodes,
         key=lambda row: (
             int(row["episode_start_date"].toordinal()),
-            -int(row["fromdate"].toordinal()),
+            int(row["admitdate"].toordinal()),
             row['caseadmitid'],
             ),
         )
@@ -50,7 +50,7 @@ def flag_index_admissions(
                 not last_episode_end_date
                 or (
                     admit['episode_start_date'] > last_episode_end_date
-                    and admit['fromdate'] > last_episode_end_date
+                    and admit['admitdate'] > last_episode_end_date
                     )
             ):
             index_yn = 'Y'
@@ -139,7 +139,7 @@ def calculate_post_acute_episodes(
     ).select(
         'member_id',
         'caseadmitid',
-        'fromdate',
+        'admitdate',
         spark_funcs.col('dischdate').alias('episode_start_date'),
         spark_funcs.date_add(
             spark_funcs.col('dischdate'),
@@ -151,7 +151,7 @@ def calculate_post_acute_episodes(
         'member_id',
         spark_funcs.struct(
             'caseadmitid',
-            'fromdate',
+            'admitdate',
             'episode_start_date',
             'episode_end_date',
             ).alias('struct_admits')
