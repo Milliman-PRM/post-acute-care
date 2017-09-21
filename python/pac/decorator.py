@@ -33,8 +33,6 @@ def flag_index_admissions(
     episodes: typing.Iterable[typing.Tuple[datetime.date, datetime.date]],
     ) -> typing.Iterable[typing.Tuple[datetime.date, datetime.date, str]]:
     """Determine if an admission should be considered an index admission"""
-    print('Type:', type(episodes[0]))
-    print('Row: ', episodes[0])
     admits_sorted = sorted(
         episodes,
         key=lambda row: (
