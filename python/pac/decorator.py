@@ -8,8 +8,6 @@
   Will share some tooling with analytics-pipeline library
 """
 import logging
-import typing
-import datetime
 
 from pyspark.sql import DataFrame
 import pyspark.sql.functions as spark_funcs
@@ -211,9 +209,12 @@ def calculate_post_acute_episodes(
         how='left_outer',
     ).select(
         '*',
-        spark_funcs.datediff(
-            spark_funcs.col('fromdate'),
-            spark_funcs.col('pac_episode_start_date'),
+        spark_funcs.greatest(
+            spark_funcs.datediff(
+                spark_funcs.col('fromdate'),
+                spark_funcs.col('pac_episode_start_date'),
+                ),
+            spark_funcs.lit(0),
             ).alias('pac_days_since_episode_start'),
         spark_funcs.when(
             spark_funcs.col('pac_caseadmitid').isNotNull(),
