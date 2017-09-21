@@ -1,0 +1,11 @@
+name,datatype,nullable
+sequencenumber,long,true
+member_id,string,true
+caseadmitid,string,true
+mr_line,string,true
+fromdate,date,true
+todate,date,true
+admitdate,date,true
+dischdate,date,true
+prv_id_ccn,string,true
+drg,string,true
