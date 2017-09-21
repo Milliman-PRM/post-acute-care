@@ -24,14 +24,16 @@ _ACUTE_MR_LINES = {
     'I12',
     }
 
+# pylint: disable=no-member
+
 # =============================================================================
 # LIBRARIES, LOCATIONS, LITERALS, ETC. GO ABOVE HERE
 # =============================================================================
 
 
 def flag_index_admissions(
-    episodes: typing.Iterable[typing.Tuple[datetime.date, datetime.date]],
-    ) -> typing.Iterable[typing.Tuple[datetime.date, datetime.date, str]]:
+        episodes: "typing.Iterable[typing.Tuple[datetime.date, datetime.date]]",
+    ) -> "typing.Iterable[typing.Tuple[datetime.date, datetime.date, str]]":
     """Determine if an admission should be considered an index admission"""
     admits_sorted = sorted(
         episodes,
@@ -45,8 +47,8 @@ def flag_index_admissions(
     last_episode_end_date = None
     for admit in admits_sorted:
         if (
-            not last_episode_end_date
-            or admit['episode_start_date'] > last_episode_end_date
+                not last_episode_end_date
+                or admit['episode_start_date'] > last_episode_end_date
             ):
             index_yn = 'Y'
             last_episode_end_date = admit['episode_end_date']
@@ -59,10 +61,11 @@ def flag_index_admissions(
 
 
 def calculate_post_acute_episodes(
-    dfs_input: typing.Mapping[str, DataFrame],
-    *,
-    episode_length: int=90
+        dfs_input: "typing.Mapping[str, DataFrame]",
+        *,
+        episode_length: int=90
     ) -> DataFrame:
+
     """Define the post-acute care episodes"""
     ip_claims = dfs_input['outclaims'].filter(
         spark_funcs.substring(
@@ -167,7 +170,7 @@ class PACDecorator(ClaimDecorator):
 
     def _calc_decorator(
             self,
-            dfs_input: typing.Mapping[str, DataFrame],
+            dfs_input: "typing.Mapping[str, DataFrame]",
         ) -> DataFrame:
         return calculate_post_acute_episodes(
             dfs_input,
