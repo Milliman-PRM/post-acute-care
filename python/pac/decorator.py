@@ -19,7 +19,7 @@ from prm.decorators.base_classes import ClaimDecorator
 
 LOGGER = logging.getLogger(__name__)
 
-_ACUTE_MR_LINES = {
+_IP_MR_LINES = {
     'I11',
     'I12',
     }
@@ -65,14 +65,74 @@ def calculate_post_acute_episodes(
         *,
         episode_length: int=90
     ) -> DataFrame:
-
     """Define the post-acute care episodes"""
-    ip_claims = dfs_input['outclaims'].filter(
+    claims_categorized = dfs_input['outclaims'].select(
+        '*',
+        spark_funcs.when(
+            spark_funcs.substring(
+                spark_funcs.col('mr_line'),
+                1,
+                3,
+            ).isin(_IP_MR_LINES),
+            spark_funcs.lit('IP')
+        ).when(
+            spark_funcs.col('mr_line') == 'I31',
+            spark_funcs.lit('SNF'),
+        ).when(
+            spark_funcs.col('mr_line') == 'P82a',
+            spark_funcs.lit('HH'),
+        ).otherwise('Other').alias('pac_major_category'),
         spark_funcs.substring(
-            spark_funcs.col('mr_line'),
-            1,
+            spark_funcs.col('prv_id_ccn'),
             3,
-        ).isin(_ACUTE_MR_LINES)
+            4,
+        ).cast('int').alias('_ccn_last_four'),
+        spark_funcs.substring(
+            spark_funcs.col('prv_id_ccn'),
+            3,
+            1,
+        ).alias('_ccn_third_char'),
+    ).withColumn(
+        'pac_minor_category',
+        spark_funcs.when(
+            spark_funcs.col('pac_major_category') == 'IP',
+            spark_funcs.when(
+                spark_funcs.col('drg').isin('945', '946'),
+                spark_funcs.lit('IRF'),
+            ).when(
+                (spark_funcs.col('_ccn_last_four') >= 1)
+                & (spark_funcs.col('_ccn_last_four') <= 879),
+                spark_funcs.lit('Acute'),
+            ).when(
+                (spark_funcs.col('_ccn_last_four') >= 1300)
+                & (spark_funcs.col('_ccn_last_four') <= 1399),
+                spark_funcs.lit('Acute'),
+            ).when(
+                (spark_funcs.col('_ccn_last_four') >= 2000)
+                & (spark_funcs.col('_ccn_last_four') <= 2299),
+                spark_funcs.lit('IRF'),
+            ).when(
+                (spark_funcs.col('_ccn_last_four') >= 3025)
+                & (spark_funcs.col('_ccn_last_four') <= 3099),
+                spark_funcs.lit('IRF'),
+            ).when(
+                spark_funcs.col('_ccn_third_char').isin('T', 'R'),
+                spark_funcs.lit('Rehab'),
+            ).when(
+                spark_funcs.col('mr_line').isin('I11b', 'I11c'),
+                spark_funcs.lit('Rehab'),
+            ).when(
+                spark_funcs.col('mr_line').isin('I11a', 'I12'),
+                spark_funcs.lit('Acute'),
+            ).otherwise(
+                spark_funcs.lit('Other'),
+            )
+        ).otherwise('Other'),
+    )
+
+    ip_claims = claims_categorized.filter(
+        (spark_funcs.col('pac_major_category') == 'IP')
+        & (spark_funcs.col('pac_minor_category') == 'Acute')
     ).select(
         'member_id',
         'caseadmitid',
