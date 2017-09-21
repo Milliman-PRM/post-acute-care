@@ -193,12 +193,15 @@ def calculate_post_acute_episodes(
         tolerance=1.0,
     )
 
-    claims_w_indexes = dfs_input['outclaims'].join(
-        ip_index_episodes,
+    claims_w_indexes = claims_categorized.join(
+        ip_index_episodes.drop('pac_index_yn'),
         on=(
-            (dfs_input['outclaims']['member_id'] == ip_index_episodes['member_id'])
-            & (dfs_input['outclaims']['fromdate'] > ip_index_episodes['pac_episode_start_date'])
-            & (dfs_input['outclaims']['fromdate'] < ip_index_episodes['pac_episode_end_date'])
+            (claims_categorized['member_id'] == ip_index_episodes['member_id'])
+            & (claims_categorized['fromdate'] > ip_index_episodes['pac_episode_start_date'])
+            & (claims_categorized['fromdate'] < ip_index_episodes['pac_episode_end_date'])
+            ) | (
+                (claims_categorized['member_id'] == ip_index_episodes['member_id'])
+                & (claims_categorized['caseadmitid'] == ip_index_episodes['pac_caseadmitid'])
             ),
         how='left_outer',
     ).select(
@@ -211,6 +214,10 @@ def calculate_post_acute_episodes(
             spark_funcs.col('pac_caseadmitid').isNotNull(),
             'Y'
             ).otherwise('N').alias('pac_claim_yn'),
+        spark_funcs.when(
+            spark_funcs.col('pac_caseadmitid') == spark_funcs.col('caseadmitid'),
+            spark_funcs.lit('Y'),
+            ).otherwise('N').alias('pac_index_yn'),
     )
     return claims_w_indexes.select(
         'sequencenumber',
