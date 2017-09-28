@@ -34,11 +34,8 @@ def main() -> int:
         input("Please enter the semantic version number for this release (e.g. 1.2.3): "),
         partial=True,
         )
-    promotion_branch = input("Please select the branch to promote (default: master): ")
-    if not promotion_branch:
-        promotion_branch = "master"
-    assert promotion_branch == "master" or version.prerelease,\
-        "Releases can only be promoted from master. Pre-releases can be promoted from any branch"
+    promotion_branch = promotion_tools.prompt_for_promotion_branch()
+    promotion_tools.validate_promotion_branch(promotion_branch, version)
     doc_info = promotion_tools.get_documentation_inputs(github_repository)
     release = promotion_tools.Release(github_repository, version, PATH_PROMOTION, doc_info)
     repository_clone = release.export_repo(branch=promotion_branch)
