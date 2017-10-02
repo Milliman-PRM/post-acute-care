@@ -1,5 +1,5 @@
 @echo off
-rem ### CODE OWNERS: Kyle Baird
+rem ### CODE OWNERS: Kyle Baird, Ben Copeland
 rem 
 rem ### OBJECTIVE:
 rem   Run the promotion process to promote a new version of this component
