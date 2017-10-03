@@ -26,7 +26,7 @@ PATH_PROMOTION = Path(r"S:\PRM\Pipeline_Components\post_acute_care")
 # =============================================================================
 
 
-def main() -> int:
+def main() -> int: # pragma: no cover
     """Promotion process"""
     LOGGER.info("Beginning code promotion for product component")
     github_repository = repo.GithubRepository.from_parts("NYHealth", "post-acute-care")
@@ -53,7 +53,7 @@ def main() -> int:
     return 0
 
 
-if __name__ == '__main__':
+if __name__ == '__main__': # pragma: no cover
     # pylint: disable=wrong-import-position, wrong-import-order, ungrouped-imports
     import sys
     import prm.utils.logging_ext
