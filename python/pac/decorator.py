@@ -9,7 +9,7 @@
 """
 import logging
 
-from pyspark.sql import DataFrame
+from pyspark.sql import DataFrame, Window
 import pyspark.sql.functions as spark_funcs
 import pyspark.sql.types as spark_types
 
@@ -138,6 +138,7 @@ def calculate_post_acute_episodes(
         'member_id',
         'caseadmitid',
         'admitdate',
+        'dischdate',
         spark_funcs.col('dischdate').alias('episode_start_date'),
         spark_funcs.date_add(
             spark_funcs.col('dischdate'),
@@ -145,7 +146,32 @@ def calculate_post_acute_episodes(
             ).alias('episode_end_date'),
     ).distinct()
 
-    ip_episode_struct = ip_claims.select(
+    transfer_window = Window().partitionBy(
+        'member_id',
+    ).orderBy(
+        'admitdate',
+        'dischdate',
+        'episode_start_date',
+        'episode_end_date',
+    )
+
+    ip_transfers = ip_claims.withColumn(
+        'next_admitdate',
+        spark_funcs.lead('admitdate').over(transfer_window)
+    ).withColumn(
+        'transfer_yn',
+        spark_funcs.when(
+            spark_funcs.date_add(
+                'dischdate',
+                1
+                ) >= spark_funcs.col('next_admitdate'),
+            'Y',
+        ).otherwise('N')
+    ).filter(
+        'transfer_yn = "N"'
+    )
+
+    ip_episode_struct = ip_transfers.select(
         'member_id',
         spark_funcs.struct(
             'caseadmitid',
