@@ -26,9 +26,9 @@ sequencenumber,member_id,caseadmitid,pac_caseadmitid,pac_episode_start_date,pac_
 25,pac_kitchen_sink,linked_readmit,index_claim,2017-06-06,2017-09-04,19,N,Y,IP,Acute
 26,non_acute_ip_start,non_acute_ip,,,,,N,N,SNF,Other
 27,non_acute_ip_start,claim_within_30_days,,,,,N,N,HH,Other
-28,two_ip_same_day,shorter_ip,,,,,N,N,IP,Acute
-29,two_ip_same_day,longer_ip,longer_ip,2017-07-15,2017-10-13,0,Y,Y,IP,Acute
-30,two_ip_same_day,linked_claim,longer_ip,2017-07-15,2017-10-13,5,N,Y,HH,Other
+28,two_ip_same_day,shorter_ip,shorter_ip,2017-07-15,2017-10-13,0,Y,Y,IP,Acute
+29,two_ip_same_day,longer_ip,,,,,N,N,IP,Acute
+30,two_ip_same_day,linked_claim,shorter_ip,2017-07-15,2017-10-13,5,N,Y,HH,Other
 31,irf_ccn_override,grouper_acute_ccn_override,,,,,N,N,IP,IRF
 32,irf_ccn_override,linked_claim,,,,,N,N,SNF,Other
 33,acute_ccn_override,grouper_rehab_ccn_override,grouper_rehab_ccn_override,2017-09-10,2017-12-09,0,Y,Y,IP,Acute
