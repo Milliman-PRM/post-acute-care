@@ -61,13 +61,11 @@ def flag_index_admissions(
     return admits_decorated
 
 
-def calculate_post_acute_episodes(
-        dfs_input: "typing.Mapping[str, DataFrame]",
-        *,
-        episode_length: int=90
+def _categorize_claims(
+        outclaims: DataFrame,
     ) -> DataFrame:
-    """Define the post-acute care episodes"""
-    claims_categorized = dfs_input['outclaims'].select(
+    """Flag service categories that are relevant to PAC"""
+    claims_categorized = outclaims.select(
         '*',
         spark_funcs.when(
             spark_funcs.substring(
@@ -130,7 +128,14 @@ def calculate_post_acute_episodes(
             )
         ).otherwise('Other'),
     )
+    return claims_categorized
 
+
+def _collect_pac_eligible_ip_stays(
+        claims_categorized: DataFrame,
+        episode_length: int,
+    ) -> DataFrame:
+    """Find all IP stays that could initiate a PAC episode"""
     ip_claims = claims_categorized.filter(
         (spark_funcs.col('pac_major_category') == 'IP')
         & (spark_funcs.col('pac_minor_category') == 'Acute')
@@ -184,7 +189,13 @@ def calculate_post_acute_episodes(
     ).agg(
         spark_funcs.collect_list(spark_funcs.col('struct_admits')).alias('array_admits')
     )
+    return ip_episode_struct
 
+
+def _find_index_admissions(
+        pac_eligible_ip: DataFrame,
+    ) -> DataFrame:
+    """Find IP cases that have a valid post-acute care episode"""
     struct_expected = spark_types.ArrayType(
         spark_types.StructType([
             spark_types.StructField('caseadmitid', spark_types.StringType()),
@@ -198,7 +209,7 @@ def calculate_post_acute_episodes(
         flag_index_admissions,
         struct_expected,
         )
-    ip_index_episodes = ip_episode_struct.select(
+    ip_index_episodes = pac_eligible_ip.select(
         'member_id',
         spark_funcs.explode(
             index_udf(spark_funcs.col('array_admits'))
@@ -221,7 +232,14 @@ def calculate_post_acute_episodes(
         'member_id',
         tolerance=1.0,
     )
+    return ip_index_episodes
 
+
+def _decorate_claims_detail(
+        claims_categorized,
+        ip_index_episodes,
+    ) -> DataFrame:
+    """Merge episode information back onto claims detail"""
     claims_w_indexes = claims_categorized.join(
         ip_index_episodes.drop('pac_index_yn'),
         on=(
@@ -251,13 +269,40 @@ def calculate_post_acute_episodes(
             spark_funcs.lit('Y'),
             ).otherwise('N').alias('pac_index_yn'),
     )
-    return claims_w_indexes.select(
+    claims_decoratored = claims_w_indexes.select(
         'sequencenumber',
         *[
             column for column in claims_w_indexes.columns
             if column.startswith('pac_')
             ],
     )
+    return claims_decoratored
+
+
+def calculate_post_acute_episodes(
+        dfs_input: "typing.Mapping[str, DataFrame]",
+        *,
+        episode_length: int=90
+    ) -> DataFrame:
+    """Define the post-acute care episodes"""
+    claims_categorized = _categorize_claims(
+        dfs_input['outclaims']
+        )
+
+    pac_eligible_ip = _collect_pac_eligible_ip_stays(
+        claims_categorized,
+        episode_length,
+        )
+
+    ip_index_episodes = _find_index_admissions(
+        pac_eligible_ip,
+        )
+
+    claims_decorated = _decorate_claims_detail(
+        claims_categorized,
+        ip_index_episodes,
+        )
+    return claims_decorated
 
 
 class PACDecorator(ClaimDecorator):
