@@ -285,6 +285,7 @@ def calculate_post_acute_episodes(
         episode_length: int=90
     ) -> DataFrame:
     """Define the post-acute care episodes"""
+    LOGGER.info('Calculating post-acute care decorators')
     claims_categorized = _categorize_claims(
         dfs_input['outclaims']
         )
