@@ -244,8 +244,8 @@ def _decorate_claims_detail(
         ip_index_episodes.drop('pac_index_yn'),
         on=(
             (claims_categorized['member_id'] == ip_index_episodes['member_id'])
-            & (claims_categorized['fromdate'] > ip_index_episodes['pac_episode_start_date'])
-            & (claims_categorized['fromdate'] < ip_index_episodes['pac_episode_end_date'])
+            & (claims_categorized['fromdate'] >= ip_index_episodes['pac_episode_start_date'])
+            & (claims_categorized['fromdate'] <= ip_index_episodes['pac_episode_end_date'])
             ) | (
                 (claims_categorized['member_id'] == ip_index_episodes['member_id'])
                 & (claims_categorized['caseadmitid'] == ip_index_episodes['pac_caseadmitid'])
