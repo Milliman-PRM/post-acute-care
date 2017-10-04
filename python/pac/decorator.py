@@ -37,7 +37,7 @@ def flag_index_admissions(
         episodes,
         key=lambda row: (
             int(row["episode_start_date"].toordinal()),
-            int(row["admitdate"].toordinal()),
+            int(row["fromdate_case"].toordinal()),
             row['caseadmitid'],
             ),
         )
@@ -46,10 +46,7 @@ def flag_index_admissions(
     for admit in admits_sorted:
         if (
                 not last_episode_end_date
-                or (
-                    admit['episode_start_date'] > last_episode_end_date
-                    and admit['admitdate'] > last_episode_end_date
-                    )
+                or admit['fromdate_case'] > last_episode_end_date
             ):
             index_yn = 'Y'
             last_episode_end_date = admit['episode_end_date']
@@ -139,37 +136,40 @@ def _collect_pac_eligible_ip_stays(
     ip_claims = claims_categorized.filter(
         (spark_funcs.col('pac_major_category') == 'IP')
         & (spark_funcs.col('pac_minor_category') == 'Acute')
-    ).select(
+    ).groupBy(
         'member_id',
         'caseadmitid',
-        'admitdate',
-        'dischdate',
-        spark_funcs.col('dischdate').alias('episode_start_date'),
+    ).agg(
+        spark_funcs.min('admitdate').alias('fromdate_case'),
+        spark_funcs.max('dischdate').alias('todate_case'),
+    ).select(
+        '*',
+        spark_funcs.col('todate_case').alias('episode_start_date'),
         spark_funcs.date_add(
-            spark_funcs.col('dischdate'),
+            spark_funcs.col('todate_case'),
             episode_length,
             ).alias('episode_end_date'),
-    ).distinct()
+    )
 
     transfer_window = Window().partitionBy(
         'member_id',
     ).orderBy(
-        'admitdate',
-        'dischdate',
+        'fromdate_case',
+        'todate_case',
         'episode_start_date',
         'episode_end_date',
     )
 
     ip_transfers = ip_claims.withColumn(
-        'next_admitdate',
-        spark_funcs.lead('admitdate').over(transfer_window)
+        'next_fromdate_case',
+        spark_funcs.lead('fromdate_case').over(transfer_window)
     ).withColumn(
         'transfer_yn',
         spark_funcs.when(
             spark_funcs.date_add(
-                'dischdate',
+                'todate_case',
                 1
-                ) >= spark_funcs.col('next_admitdate'),
+                ) >= spark_funcs.col('next_fromdate_case'),
             'Y',
         ).otherwise('N')
     ).filter(
@@ -180,7 +180,7 @@ def _collect_pac_eligible_ip_stays(
         'member_id',
         spark_funcs.struct(
             'caseadmitid',
-            'admitdate',
+            'fromdate_case',
             'episode_start_date',
             'episode_end_date',
             ).alias('struct_admits')

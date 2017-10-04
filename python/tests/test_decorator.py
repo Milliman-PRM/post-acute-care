@@ -65,19 +65,19 @@ def test_flag_index_admissions():
     mock_member = [
         Row(
             caseadmitid='admit_1',
-            admitdate=datetime.date(2017, 1, 1),
+            fromdate_case=datetime.date(2017, 1, 1),
             episode_start_date=datetime.date(2017, 1, 5),
             episode_end_date=datetime.date(2017, 4, 4)
             ),
         Row(
             caseadmitid='admit_2',
-            admitdate=datetime.date(2017, 2, 1),
+            fromdate_case=datetime.date(2017, 2, 1),
             episode_start_date=datetime.date(2017, 2, 5),
             episode_end_date=datetime.date(2017, 5, 4)
             ),
         Row(
             caseadmitid='admit_3',
-            admitdate=datetime.date(2017, 5, 1),
+            fromdate_case=datetime.date(2017, 5, 1),
             episode_start_date=datetime.date(2017, 5, 5),
             episode_end_date=datetime.date(2017, 8, 4)
             ),
