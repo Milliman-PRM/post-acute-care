@@ -1,5 +1,5 @@
 """
-### CODE OWNERS: Ben Copeland
+### CODE OWNERS: Ben Copeland, Pierre Cornell
 
 ### OBJECTIVE:
   Test the decoration of post-acute care episodes
