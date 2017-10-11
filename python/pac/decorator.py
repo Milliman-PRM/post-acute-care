@@ -1,5 +1,5 @@
 """
-### CODE OWNERS: Ben Copeland
+### CODE OWNERS: Ben Copeland, Pierre Cornell
 
 ### OBJECTIVE:
   Maintain the logic for calculating post-acute care decorators
