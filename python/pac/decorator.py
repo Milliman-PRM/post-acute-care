@@ -316,7 +316,9 @@ class PACDecorator(ClaimDecorator):
     def _calc_decorator(
             self,
             dfs_input: "typing.Mapping[str, DataFrame]",
+            **kwargs
         ) -> DataFrame:
         return calculate_post_acute_episodes(
             dfs_input,
+            **kwargs,
             )
