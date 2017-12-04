@@ -1,4 +1,4 @@
-sequencenumber,member_id,caseadmitid,mr_line,fromdate,todate,admitdate,dischdate,prv_id_ccn,drg
+sequencenumber,member_id,caseadmitid,mr_line,fromdate,todate,prm_fromdate_case,prm_todate_case,prv_id_ccn,drg
 1,standard_pac,index_claim,I11a,2017-01-01,2017-01-05,2017-01-01,2017-01-05,,857
 2,standard_pac,linked_claim,P82a,2017-01-10,2017-01-15,2017-01-10,2017-01-15,,
 3,standard_pac,linked_claim_2,P32c,2017-01-20,2017-01-20,2017-01-20,2017-01-20,,

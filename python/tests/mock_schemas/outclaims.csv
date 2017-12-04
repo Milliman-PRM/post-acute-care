@@ -5,7 +5,7 @@ caseadmitid,string,true
 mr_line,string,true
 fromdate,date,true
 todate,date,true
-admitdate,date,true
-dischdate,date,true
+prm_fromdate_case,date,true
+prm_todate_case,date,true
 prv_id_ccn,string,true
 drg,string,true
