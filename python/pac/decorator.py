@@ -140,8 +140,8 @@ def _collect_pac_eligible_ip_stays(
         'member_id',
         'caseadmitid',
     ).agg(
-        spark_funcs.min('admitdate').alias('fromdate_case'),
-        spark_funcs.max('dischdate').alias('todate_case'),
+        spark_funcs.min('prm_fromdate_case').alias('fromdate_case'),
+        spark_funcs.max('prm_todate_case').alias('todate_case'),
     ).select(
         '*',
         spark_funcs.col('todate_case').alias('episode_start_date'),
