@@ -1,0 +1,3 @@
+name,datatype,nullable
+member_id,string,true
+death_date,date,true
