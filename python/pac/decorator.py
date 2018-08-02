@@ -261,96 +261,86 @@ def _flag_complete_episodes(
         spark_funcs.col('memmos') > 0
     )
     
-    episodes_w_months = ip_index_episodes.withColumn(
-        'pac_episode_start_month',
-        date_as_month('pac_episode_start_date')
+    episodes_w_flags = ip_index_episodes.withColumn(
+        'complete_yn',
+        spark_funcs.when(
+            spark_funcs.col('pac_episode_end_date') <= date_latestincurred,
+            spark_funcs.lit('Y'),
+        ).otherwise(
+            spark_funcs.lit('N')
+        )
     ).withColumn(
-        'pac_episode_end_month',
-        date_as_month('pac_episode_end_date')
+        'runout_yn',
+        spark_funcs.when(
+            spark_funcs.add_months('pac_episode_end_date', RUNOUT) <= date_latestpaid,
+            spark_funcs.lit('Y'),
+        ).otherwise(
+            spark_funcs.lit('N')
+        )
     )
     
-    episodes_w_memmos = episodes_w_months.join(
+    req_elig_months = ip_index_episodes.select(
+        'member_id',
+        'pac_caseadmitid',
+        'pac_episode_start_date',
+        'pac_episode_end_date',
+    ).withColumn(
+        'month',
+        spark_funcs.explode(
+            spark_funcs.array(
+                *[
+                    spark_funcs.add_months(date_as_month('pac_episode_start_date'), add_month)
+                    for add_month in range(0, int(episode_length / 30) + 1)
+                ]
+            )
+        )
+    )
+            
+    episodes_w_mem_flag = req_elig_months.join(
         member_months_trim,
-        on=(episodes_w_months.member_id == member_months_trim.member_id) &
-        (episodes_w_months.pac_episode_start_month == member_months_trim.month),
-        how='left_outer',
+        on=['member_id', 'month'],
+        how='left_outer'
     ).join(
         members.select('member_id', 'death_date'),
         on='member_id',
-        how='inner',
-    ).select(
-        episodes_w_months.member_id,        
-        'pac_caseadmitid',
-        'pac_episode_start_date',
-        'pac_episode_end_date',
-        'pac_index_yn',
-        'pac_episode_end_month',
-        'death_date',
-        spark_funcs.when(
-            spark_funcs.col('month').isNull(),
-            spark_funcs.lit('N')
-        ).otherwise(
-            spark_funcs.lit('Y')
-        ).alias('start_month_elig'),
-    )
-    
-    episode_complete_ynr = episodes_w_memmos.join(
-        member_months_trim,
-        on=(episodes_w_months.member_id == member_months_trim.member_id) &
-        (episodes_w_months.pac_episode_end_month == member_months_trim.month),
-        how='left_outer',
-    ).select(
-        episodes_w_months.member_id,        
-        'pac_caseadmitid',
-        'pac_episode_start_date',
-        'pac_episode_end_date',
-        'pac_index_yn',
-        'death_date',
-        'start_month_elig',
-        spark_funcs.when(
-            spark_funcs.col('month').isNull(),
-            spark_funcs.lit('N')
-        ).otherwise(
-            spark_funcs.lit('Y')
-        ).alias('end_month_elig'),
+        how='inner'
     ).withColumn(
-        'pac_complete_ynr',
+        'eligible',
         spark_funcs.when(
-            (spark_funcs.add_months('pac_episode_end_date', RUNOUT) <= date_latestpaid) &
-            (spark_funcs.col('pac_episode_end_date') <= date_latestincurred),
-            spark_funcs.when(
-                (spark_funcs.col('start_month_elig') == 'Y') &
-                (spark_funcs.col('end_month_elig') == 'Y'),
-                spark_funcs.lit('Y')
-            ).when(
-                (spark_funcs.col('death_date').between(
-                    spark_funcs.col('pac_episode_start_date'),
-                    spark_funcs.col('pac_episode_end_date'),
-                )) &
-                (spark_funcs.col('start_month_elig') == 'Y'),
-                spark_funcs.lit('Y')
-            ).otherwise(
-                spark_funcs.lit('N')
-            )
+            spark_funcs.col('memmos') > 0,
+            spark_funcs.lit(0)
         ).when(
-            (spark_funcs.add_months('pac_episode_end_date', RUNOUT) > date_latestpaid) &
-            (spark_funcs.col('pac_episode_end_date') <= date_latestincurred),
-            spark_funcs.when(
-                (spark_funcs.col('start_month_elig') == 'Y') &
-                (spark_funcs.col('end_month_elig') == 'Y'),
-                spark_funcs.lit('R')
-            ).when(
-                (spark_funcs.col('death_date').between(
-                    spark_funcs.col('pac_episode_start_date'),
-                    spark_funcs.col('pac_episode_end_date'),
-                )) &
-                (spark_funcs.col('start_month_elig') == 'Y'),
-                spark_funcs.lit('R')
-            ).otherwise(
-                spark_funcs.lit('N')
-            )
+            date_as_month('death_date') < spark_funcs.col('month'),
+            spark_funcs.lit(0)
         ).otherwise(
-            spark_funcs.lit('N')
+            spark_funcs.lit(1)
+        )
+    ).groupBy(
+        'member_id',
+        'pac_caseadmitid',
+    ).agg(
+        spark_funcs.sum('eligible').alias('eligible')
+    )
+        
+    episodes_complete = episodes_w_flags.join(
+        episodes_w_mem_flag,
+        on=['member_id', 'pac_caseadmitid'],
+        how='inner'
+    ).withColumn(
+        'pac_complete',
+        spark_funcs.when(
+            spark_funcs.col('complete_yn') == 'N',
+            spark_funcs.lit('no'),
+        ).when(
+            spark_funcs.col('eligible') != 0,
+            spark_funcs.lit('no'),
+        ).when(
+            (spark_funcs.col('complete_yn') == 'Y') &
+            (spark_funcs.col('runout_yn') == 'N') &
+            (spark_funcs.col('eligible') == 0),
+            spark_funcs.lit('runout')
+        ).otherwise(
+            spark_funcs.lit('yes')
         )
     ).select(
         'member_id',
@@ -358,10 +348,10 @@ def _flag_complete_episodes(
         'pac_episode_start_date',
         'pac_episode_end_date',
         'pac_index_yn',
-        'pac_complete_ynr',
+        'pac_complete',
     )
 
-    return episode_complete_ynr
+    return episodes_complete
     
 def _decorate_claims_detail(
         claims_categorized,
