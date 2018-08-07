@@ -38,3 +38,9 @@ sequencenumber,member_id,caseadmitid,mr_line,fromdate,todate,prm_fromdate_case,p
 37,pac_index_overlap,index_claim,I11a,2017-10-01,2017-10-10,2017-10-01,2017-10-10,,470
 38,pac_index_overlap,pac_ip,I11a,2018-01-03,2018-01-18,2018-01-03,2018-01-18,,004
 39,pac_index_overlap,linked_claim,I31,2018-01-30,2018-01-31,2018-01-30,2018-01-31,,000
+40,pac_runout,index_claim,I11a,2018-01-01,2018-01-02,2018-01-01,2018-01-02,,313
+41,pac_runout,linked_claim,P82a,2018-01-15,2018-01-20,2018-01-15,2018-01-20,,
+42,pac_death,index_claim,I12,2017-01-01,2017-01-02,2017-01-01,2017-01-02,,338
+43,pac_death,linked_claim,I31,2017-02-01,2017-02-15,2017-02-01,2017-02-15,,
+44,pac_missing_membership,index_claim,I11a,2017-12-01,2017-12-15,2017-12-01,2017-12-15,,304
+45,pac_missing_membership,linked_claim,I11b,2017-12-17,2017-12-20,2017-12-17,2017-12-20,,743
