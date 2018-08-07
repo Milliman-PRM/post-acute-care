@@ -240,14 +240,13 @@ def _find_index_admissions(
 
 def _flag_complete_episodes(
         ip_index_episodes,
-        members,
-        member_months,
+        dfs_input,
         date_latestpaid,
         date_latestincurred,
         episode_length,
     ) -> DataFrame:
     """Flag index episodes as complete based on runout and membership"""
-    member_months_trim = member_months.where(
+    member_months_trim = dfs_input['member_months'].where(
         spark_funcs.col('cover_medical') == 'Y'
     ).select(
         'member_id',
@@ -261,7 +260,7 @@ def _flag_complete_episodes(
     ).where(
         spark_funcs.col('memmos') > 0
     )
-    
+
     episodes_w_flags = ip_index_episodes.withColumn(
         'complete_yn',
         spark_funcs.when(
@@ -279,7 +278,7 @@ def _flag_complete_episodes(
             spark_funcs.lit('N')
         )
     )
-    
+
     req_elig_months = ip_index_episodes.select(
         'member_id',
         'pac_caseadmitid',
@@ -296,13 +295,13 @@ def _flag_complete_episodes(
             )
         )
     )
-            
+
     episodes_w_mem_flag = req_elig_months.join(
         member_months_trim,
         on=['member_id', 'month'],
         how='left_outer'
     ).join(
-        members.select('member_id', 'death_date'),
+        dfs_input['members'].select('member_id', 'death_date'),
         on='member_id',
         how='inner'
     ).withColumn(
@@ -322,7 +321,7 @@ def _flag_complete_episodes(
     ).agg(
         spark_funcs.sum('eligible').alias('eligible')
     )
-        
+
     episodes_complete = episodes_w_flags.join(
         episodes_w_mem_flag,
         on=['member_id', 'pac_caseadmitid'],
@@ -353,7 +352,7 @@ def _flag_complete_episodes(
     )
 
     return episodes_complete
-    
+
 def _decorate_claims_detail(
         claims_categorized,
         ip_index_episodes,
@@ -421,8 +420,7 @@ def calculate_post_acute_episodes(
 
     ip_index_episodes_complete = _flag_complete_episodes(
         ip_index_episodes,
-        dfs_input['members'],
-        dfs_input['member_months'],
+        dfs_input,
         date_latestpaid,
         date_latestincurred,
         episode_length,
@@ -432,7 +430,7 @@ def calculate_post_acute_episodes(
         claims_categorized,
         ip_index_episodes_complete,
         )
-    
+
     return claims_decorated
 
 
