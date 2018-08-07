@@ -10,3 +10,4 @@ pac_index_yn,string,true
 pac_claim_yn,string,true
 pac_major_category,string,true
 pac_minor_category,string,true
+pac_complete,string,true

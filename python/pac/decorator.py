@@ -9,11 +9,13 @@
 """
 import logging
 
+import datetime
+from prm.dates.utils import date_as_month
 from pyspark.sql import DataFrame, Window
 import pyspark.sql.functions as spark_funcs
 import pyspark.sql.types as spark_types
-
 from prm.decorators.base_classes import ClaimDecorator
+
 
 LOGGER = logging.getLogger(__name__)
 
@@ -21,6 +23,8 @@ _IP_MR_LINES = {
     'I11',
     'I12',
     }
+
+RUNOUT = 3
 
 # pylint: disable=no-member
 
@@ -234,6 +238,120 @@ def _find_index_admissions(
     )
     return ip_index_episodes
 
+def _flag_complete_episodes(
+        ip_index_episodes,
+        dfs_input,
+        date_latestpaid,
+        date_latestincurred,
+        episode_length,
+    ) -> DataFrame:
+    """Flag index episodes as complete based on runout and membership"""
+    member_months_trim = dfs_input['member_months'].where(
+        spark_funcs.col('cover_medical') == 'Y'
+    ).select(
+        'member_id',
+        spark_funcs.col('elig_month').alias('month'),
+        'memmos_medical'
+    ).groupBy(
+        'member_id',
+        'month',
+    ).agg(
+        spark_funcs.sum('memmos_medical').alias('memmos')
+    ).where(
+        spark_funcs.col('memmos') > 0
+    )
+
+    episodes_w_flags = ip_index_episodes.withColumn(
+        'complete_yn',
+        spark_funcs.when(
+            spark_funcs.col('pac_episode_end_date') <= date_latestincurred,
+            spark_funcs.lit('Y'),
+        ).otherwise(
+            spark_funcs.lit('N')
+        )
+    ).withColumn(
+        'runout_yn',
+        spark_funcs.when(
+            spark_funcs.add_months('pac_episode_end_date', RUNOUT) <= date_latestpaid,
+            spark_funcs.lit('Y'),
+        ).otherwise(
+            spark_funcs.lit('N')
+        )
+    )
+
+    req_elig_months = ip_index_episodes.select(
+        'member_id',
+        'pac_caseadmitid',
+        'pac_episode_start_date',
+        'pac_episode_end_date',
+    ).withColumn(
+        'month',
+        spark_funcs.explode(
+            spark_funcs.array(
+                *[
+                    spark_funcs.add_months(date_as_month('pac_episode_start_date'), add_month)
+                    for add_month in range(0, int(episode_length / 30) + 1)
+                ]
+            )
+        )
+    )
+
+    episodes_w_mem_flag = req_elig_months.join(
+        member_months_trim,
+        on=['member_id', 'month'],
+        how='left_outer'
+    ).join(
+        dfs_input['members'].select('member_id', 'death_date'),
+        on='member_id',
+        how='inner'
+    ).withColumn(
+        'eligible',
+        spark_funcs.when(
+            spark_funcs.col('memmos') > 0,
+            spark_funcs.lit(0)
+        ).when(
+            date_as_month('death_date') < spark_funcs.col('month'),
+            spark_funcs.lit(0)
+        ).otherwise(
+            spark_funcs.lit(1)
+        )
+    ).groupBy(
+        'member_id',
+        'pac_caseadmitid',
+    ).agg(
+        spark_funcs.sum('eligible').alias('eligible')
+    )
+
+    episodes_complete = episodes_w_flags.join(
+        episodes_w_mem_flag,
+        on=['member_id', 'pac_caseadmitid'],
+        how='inner'
+    ).withColumn(
+        'pac_complete',
+        spark_funcs.when(
+            spark_funcs.col('complete_yn') == 'N',
+            spark_funcs.lit('no'),
+        ).when(
+            spark_funcs.col('eligible') != 0,
+            spark_funcs.lit('no'),
+        ).when(
+            (spark_funcs.col('complete_yn') == 'Y') &
+            (spark_funcs.col('runout_yn') == 'N') &
+            (spark_funcs.col('eligible') == 0),
+            spark_funcs.lit('runout')
+        ).otherwise(
+            spark_funcs.lit('yes')
+        )
+    ).select(
+        'member_id',
+        'pac_caseadmitid',
+        'pac_episode_start_date',
+        'pac_episode_end_date',
+        'pac_index_yn',
+        'pac_complete',
+    )
+
+    return episodes_complete
 
 def _decorate_claims_detail(
         claims_categorized,
@@ -278,11 +396,12 @@ def _decorate_claims_detail(
     )
     return claims_decoratored
 
-
 def calculate_post_acute_episodes(
         dfs_input: "typing.Mapping[str, DataFrame]",
         *,
-        episode_length: int=90
+        episode_length: int=90,
+        date_latestpaid: datetime.date=datetime.date(2018, 4, 30),
+        date_latestincurred: datetime.date=datetime.date(2018, 4, 15)
     ) -> DataFrame:
     """Define the post-acute care episodes"""
     LOGGER.info('Calculating post-acute care decorators')
@@ -299,10 +418,19 @@ def calculate_post_acute_episodes(
         pac_eligible_ip,
         )
 
+    ip_index_episodes_complete = _flag_complete_episodes(
+        ip_index_episodes,
+        dfs_input,
+        date_latestpaid,
+        date_latestincurred,
+        episode_length,
+        )
+
     claims_decorated = _decorate_claims_detail(
         claims_categorized,
-        ip_index_episodes,
+        ip_index_episodes_complete,
         )
+
     return claims_decorated
 
 
