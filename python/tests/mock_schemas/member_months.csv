@@ -2,4 +2,4 @@ name,datatype,nullable
 member_id,string,true
 cover_medical,string,true
 elig_month,date,true
-memmos_medical,int,true
+memmos_medical,float,true

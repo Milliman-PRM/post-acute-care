@@ -38,3 +38,9 @@ sequencenumber,member_id,caseadmitid,pac_caseadmitid,pac_episode_start_date,pac_
 37,pac_index_overlap,index_claim,index_claim,2017-10-10,2018-01-08,0,Y,Y,IP,Acute,yes
 38,pac_index_overlap,pac_ip,index_claim,2017-10-10,2018-01-08,85,N,Y,IP,Acute,yes
 39,pac_index_overlap,linked_claim,,,,,N,N,SNF,Other,
+40,pac_runout,index_claim,index_claim,2018-01-02,2018-04-02,0,Y,Y,IP,Acute,runout
+41,pac_runout,linked_cliam,index_claim,2018-01-02,2018-04-02,13,N,Y,HH,Other,runout
+42,pac_death,index_claim,index_claim,2017-01-02,2017-04-02,0,Y,Y,IP,Acute,yes
+43,pac_death,index_claim,linked_claim,2017-01-02,2017-04-02,0,N,Y,SNF,Other,yes
+44,pac_missing_membership,index_claim,index_claim,2017-12-15,2018-03-15,0,Y,Y,IP,Acute,no
+45,pac_missing_membership,index_claim,linked_claim,2017-12-15,2018-03-15,2,N,Y,IP,Rehab,no
