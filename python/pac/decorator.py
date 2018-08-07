@@ -244,6 +244,7 @@ def _flag_complete_episodes(
         member_months,
         date_latestpaid,
         date_latestincurred,
+        episode_length,
     ) -> DataFrame:
     """Flag index episodes as complete based on runout and membership"""
     member_months_trim = member_months.where(
@@ -424,6 +425,7 @@ def calculate_post_acute_episodes(
         dfs_input['member_months'],
         date_latestpaid,
         date_latestincurred,
+        episode_length,
         )
 
     claims_decorated = _decorate_claims_detail(
