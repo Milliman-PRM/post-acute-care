@@ -37,4 +37,4 @@ sequencenumber,member_id,caseadmitid,pac_index_yn,pac_claim_yn,pac_major_categor
 36,irf_drg_override,linked_claim,N,N,HH,Other
 37,pac_index_overlap,index_claim,Y,Y,IP,Acute
 38,pac_index_overlap,pac_ip,Y,Y,IP,Acute
-39,pac_index_overlap,linked_claim,N,N,SNF,Other
+39,pac_index_overlap,linked_claim,N,Y,SNF,Other
