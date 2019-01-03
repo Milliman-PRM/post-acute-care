@@ -29,27 +29,6 @@ _IP_MR_LINES = {
 # =============================================================================
 
 
-def flag_index_admissions(
-        episodes: "typing.Iterable[typing.Tuple[str, datetime.date, datetime.date, datetime.date]]",
-    ) -> "typing.Iterable[typing.Tuple[str, datetime.date, datetime.date, str]]":
-    """Determine if an admission should be considered an index admission"""
-    admits_sorted = sorted(
-        episodes,
-        key=lambda row: (
-            int(row["episode_start_date"].toordinal()),
-            int(row["fromdate_case"].toordinal()),
-            row['caseadmitid'],
-            ),
-        )
-    admits_decorated = list()
-    for admit in admits_sorted:
-        index_yn = 'Y'
-        admits_decorated.append(
-            (admit['caseadmitid'], admit['episode_start_date'], admit['episode_end_date'], index_yn)
-            )
-    return admits_decorated
-
-
 def _categorize_claims(
         outclaims: DataFrame,
     ) -> DataFrame:
@@ -168,52 +147,12 @@ def _collect_pac_eligible_ip_stays(
         'transfer_yn = "N"'
     )
 
-    ip_episode_struct = ip_transfers.select(
+    ip_index_episodes = ip_transfers.select(
         'member_id',
-        spark_funcs.struct(
-            'caseadmitid',
-            'fromdate_case',
-            'episode_start_date',
-            'episode_end_date',
-            ).alias('struct_admits')
-    ).groupBy(
-        'member_id'
-    ).agg(
-        spark_funcs.collect_list(spark_funcs.col('struct_admits')).alias('array_admits')
-    )
-    return ip_episode_struct
-
-
-def _find_index_admissions(
-        pac_eligible_ip: DataFrame,
-    ) -> DataFrame:
-    """Find IP cases that have a valid post-acute care episode"""
-    struct_expected = spark_types.ArrayType(
-        spark_types.StructType([
-            spark_types.StructField('caseadmitid', spark_types.StringType()),
-            spark_types.StructField('episode_start_date', spark_types.DateType()),
-            spark_types.StructField('episode_end_date', spark_types.DateType()),
-            spark_types.StructField('index_yn', spark_types.StringType()),
-            ])
-        )
-
-    index_udf = spark_funcs.udf(
-        flag_index_admissions,
-        struct_expected,
-        )
-    ip_index_episodes = pac_eligible_ip.select(
-        'member_id',
-        spark_funcs.explode(
-            index_udf(spark_funcs.col('array_admits'))
-        ).alias('struct_indexes')
-    ).select(
-        'member_id',
-        spark_funcs.col('struct_indexes')['caseadmitid'].alias('pac_caseadmitid'),
-        spark_funcs.col('struct_indexes')['episode_start_date'].alias('pac_episode_start_date'),
-        spark_funcs.col('struct_indexes')['episode_end_date'].alias('pac_episode_end_date'),
-        spark_funcs.col('struct_indexes')['index_yn'].alias('pac_index_yn'),
-    ).filter(
-        'pac_index_yn = "Y"'
+        spark_funcs.col('caseadmitid').alias('pac_caseadmitid'),
+        spark_funcs.col('episode_start_date').alias('pac_episode_start_date'),
+        spark_funcs.col('episode_end_date').alias('pac_episode_end_date'),
+        spark_funcs.lit('Y').alias('pac_index_yn'),
     )
 
     return ip_index_episodes
@@ -279,13 +218,9 @@ def calculate_post_acute_episodes(
         dfs_input['outclaims']
         )
 
-    pac_eligible_ip = _collect_pac_eligible_ip_stays(
+    ip_index_episodes = _collect_pac_eligible_ip_stays(
         claims_categorized,
         episode_length,
-        )
-
-    ip_index_episodes = _find_index_admissions(
-        pac_eligible_ip,
         )
 
     claims_decorated = _decorate_claims_detail(
