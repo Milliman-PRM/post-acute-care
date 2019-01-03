@@ -42,16 +42,8 @@ def flag_index_admissions(
             ),
         )
     admits_decorated = list()
-    last_episode_end_date = None
     for admit in admits_sorted:
-        if (
-                not last_episode_end_date
-                or admit['fromdate_case'] > last_episode_end_date
-            ):
-            index_yn = 'Y'
-            last_episode_end_date = admit['episode_end_date']
-        else:
-            index_yn = 'N'
+        index_yn = 'Y'
         admits_decorated.append(
             (admit['caseadmitid'], admit['episode_start_date'], admit['episode_end_date'], index_yn)
             )
@@ -224,16 +216,7 @@ def _find_index_admissions(
         'pac_index_yn = "Y"'
     )
 
-    ip_index_episodes.select(
-        'member_id',
-        spark_funcs.col('pac_episode_start_date').alias('date_start'),
-        spark_funcs.col('pac_episode_end_date').alias('date_end'),
-    ).validate.assert_window_format(
-        'member_id',
-        tolerance=1.0,
-    )
     return ip_index_episodes
-
 
 def _decorate_claims_detail(
         claims_categorized,
@@ -253,13 +236,6 @@ def _decorate_claims_detail(
         how='left_outer',
     ).select(
         '*',
-        spark_funcs.greatest(
-            spark_funcs.datediff(
-                spark_funcs.col('fromdate'),
-                spark_funcs.col('pac_episode_start_date'),
-                ),
-            spark_funcs.lit(0),
-            ).alias('pac_days_since_episode_start'),
         spark_funcs.when(
             spark_funcs.col('pac_caseadmitid').isNotNull(),
             'Y'
@@ -269,13 +245,26 @@ def _decorate_claims_detail(
             spark_funcs.lit('Y'),
             ).otherwise('N').alias('pac_index_yn'),
     )
-    claims_decoratored = claims_w_indexes.select(
+    
+    sequence_sort = Window().partitionBy(
         'sequencenumber',
-        *[
-            column for column in claims_w_indexes.columns
-            if column.startswith('pac_')
-            ],
+    ).orderBy(
+        spark_funcs.desc('pac_index_yn'),
     )
+
+    claims_decoratored = claims_w_indexes.withColumn(
+        'seq_rank',
+        spark_funcs.row_number().over(sequence_sort)
+    ).where(
+        spark_funcs.col('seq_rank') == 1
+    ).select(
+        'sequencenumber',
+        'pac_major_category',
+        'pac_minor_category',
+        'pac_claim_yn',
+        'pac_index_yn',
+    )
+    
     return claims_decoratored
 
 
