@@ -2,10 +2,6 @@ name,datatype,nullable
 sequencenumber,long,true
 member_id,string,true
 caseadmitid,string,true
-pac_caseadmitid,string,true
-pac_episode_start_date,date,true
-pac_episode_end_date,date,true
-pac_days_since_episode_start,integer,true
 pac_index_yn,string,true
 pac_claim_yn,string,true
 pac_major_category,string,true
