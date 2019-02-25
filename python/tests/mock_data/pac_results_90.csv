@@ -29,12 +29,6 @@ sequencenumber,member_id,caseadmitid,pac_caseadmitid,pac_episode_start_date,pac_
 28,two_ip_same_day,shorter_ip,shorter_ip,2017-07-15,2017-10-13,0,Y,Y,IP,Acute
 29,two_ip_same_day,longer_ip,,,,,N,N,IP,Acute
 30,two_ip_same_day,linked_claim,shorter_ip,2017-07-15,2017-10-13,5,N,Y,HH,Other
-31,irf_ccn_override,grouper_acute_ccn_override,,,,,N,N,IP,Rehab
-32,irf_ccn_override,linked_claim,,,,,N,N,SNF,Other
-33,acute_ccn_override,grouper_rehab_ccn_override,grouper_rehab_ccn_override,2017-09-10,2017-12-09,0,Y,Y,IP,Acute
-34,acute_ccn_override,linked_claim,grouper_rehab_ccn_override,2017-09-10,2017-12-09,5,N,Y,SNF,Other
-35,irf_drg_override,acute_drg_override,,,,,N,N,IP,Rehab
-36,irf_drg_override,linked_claim,,,,,N,N,HH,Other
-37,pac_index_overlap,index_claim,index_claim,2017-10-10,2018-01-08,0,Y,Y,IP,Acute
-38,pac_index_overlap,pac_ip,index_claim,2017-10-10,2018-01-08,85,N,Y,IP,Acute
-39,pac_index_overlap,linked_claim,,,,,N,N,SNF,Other
+31,pac_index_overlap,index_claim,index_claim,2017-10-10,2018-01-08,0,Y,Y,IP,Acute
+32,pac_index_overlap,pac_ip,index_claim,2017-10-10,2018-01-08,85,N,Y,IP,Acute
+33,pac_index_overlap,linked_claim,,,,,N,N,SNF,Other
