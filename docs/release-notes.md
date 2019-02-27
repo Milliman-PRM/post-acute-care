@@ -2,6 +2,9 @@
 
 A non-exhaustive list of what has changed in a more readable form than a commit history.
 
+### 1.2.0
+  - Remove CCN/DRG override for PAC minor category
+
 ### 1.1.1
 
   - Fixed a bug involving duplicated lines for some cases which contained both `IP Acute` and `IP Rehab` categories

@@ -29,12 +29,6 @@ sequencenumber,member_id,caseadmitid,mr_line,fromdate,todate,prm_fromdate_case,p
 28,two_ip_same_day,shorter_ip,I11a,2017-07-15,2017-07-15,2017-07-15,2017-07-15,,032
 29,two_ip_same_day,longer_ip,I11a,2017-07-05,2017-07-15,2017-07-05,2017-07-15,,606
 30,two_ip_same_day,linked_claim,P82a,2017-07-20,2017-07-22,2017-07-20,2017-07-22,,
-31,irf_ccn_override,grouper_acute_ccn_override,I11a,2017-08-01,2017-08-15,2017-08-01,2017-08-15,422250,770
-32,irf_ccn_override,linked_claim,I31,2017-08-17,2017-08-31,2017-08-17,2017-08-31,,000
-33,acute_ccn_override,grouper_rehab_ccn_override,I11b,2017-09-01,2017-09-10,2017-09-01,2017-09-10,420042,349
-34,acute_ccn_override,linked_claim,I31,2017-09-15,2017-09-31,2017-09-15,2017-09-31,,000
-35,irf_drg_override,acute_drg_override,I11a,2017-09-20,2017-09-31,2017-09-20,2017-09-31,,945
-36,irf_drg_override,linked_claim,P82a,2017-10-05,2017-10-10,2017-10-05,2017-10-10,,
-37,pac_index_overlap,index_claim,I11a,2017-10-01,2017-10-10,2017-10-01,2017-10-10,,470
-38,pac_index_overlap,pac_ip,I11a,2018-01-03,2018-01-18,2018-01-03,2018-01-18,,004
-39,pac_index_overlap,linked_claim,I31,2018-01-30,2018-01-31,2018-01-30,2018-01-31,,000
+31,pac_index_overlap,index_claim,I11a,2017-10-01,2017-10-10,2017-10-01,2017-10-10,,470
+32,pac_index_overlap,pac_ip,I11a,2018-01-03,2018-01-18,2018-01-03,2018-01-18,,004
+33,pac_index_overlap,linked_claim,I31,2018-01-30,2018-01-31,2018-01-30,2018-01-31,,000
