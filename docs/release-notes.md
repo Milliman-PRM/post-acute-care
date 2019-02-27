@@ -4,6 +4,7 @@ A non-exhaustive list of what has changed in a more readable form than a commit 
 
 ### 1.2.0
   - Remove CCN/DRG override for PAC minor category
+  - Remove legacy SQL code
 
 ### 1.1.1
 
