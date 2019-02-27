@@ -93,28 +93,6 @@ def _categorize_claims(
         spark_funcs.when(
             spark_funcs.col('pac_major_category') == 'IP',
             spark_funcs.when(
-                spark_funcs.col('drg').isin('945', '946'),
-                spark_funcs.lit('Rehab'),
-            ).when(
-                (spark_funcs.col('_ccn_last_four') >= 1)
-                & (spark_funcs.col('_ccn_last_four') <= 879),
-                spark_funcs.lit('Acute'),
-            ).when(
-                (spark_funcs.col('_ccn_last_four') >= 1300)
-                & (spark_funcs.col('_ccn_last_four') <= 1399),
-                spark_funcs.lit('Acute'),
-            ).when(
-                (spark_funcs.col('_ccn_last_four') >= 2000)
-                & (spark_funcs.col('_ccn_last_four') <= 2299),
-                spark_funcs.lit('Rehab'),
-            ).when(
-                (spark_funcs.col('_ccn_last_four') >= 3025)
-                & (spark_funcs.col('_ccn_last_four') <= 3099),
-                spark_funcs.lit('Rehab'),
-            ).when(
-                spark_funcs.col('_ccn_third_char').isin('T', 'R'),
-                spark_funcs.lit('Rehab'),
-            ).when(
                 spark_funcs.col('mr_line').isin('I11b', 'I11c'),
                 spark_funcs.lit('Rehab'),
             ).when(
