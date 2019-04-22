@@ -222,8 +222,8 @@ def _decorate_claims_detail(
         ip_index_episodes.drop('pac_index_yn'),
         on=(
             (claims_categorized['member_id'] == ip_index_episodes['member_id'])
-            & (claims_categorized['fromdate'] >= ip_index_episodes['pac_episode_start_date'])
-            & (claims_categorized['fromdate'] <= ip_index_episodes['pac_episode_end_date'])
+            & (claims_categorized['prm_fromdate_case'] >= ip_index_episodes['pac_episode_start_date'])
+            & (claims_categorized['prm_fromdate_case'] <= ip_index_episodes['pac_episode_end_date'])
             ) | (
                 (claims_categorized['member_id'] == ip_index_episodes['member_id'])
                 & (claims_categorized['caseadmitid'] == ip_index_episodes['pac_caseadmitid'])
@@ -233,7 +233,7 @@ def _decorate_claims_detail(
         '*',
         spark_funcs.greatest(
             spark_funcs.datediff(
-                spark_funcs.col('fromdate'),
+                spark_funcs.col('prm_fromdate_case'),
                 spark_funcs.col('pac_episode_start_date'),
                 ),
             spark_funcs.lit(0),
