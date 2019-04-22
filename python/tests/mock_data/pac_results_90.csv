@@ -33,5 +33,5 @@ sequencenumber,member_id,caseadmitid,pac_caseadmitid,pac_episode_start_date,pac_
 32,pac_index_overlap,pac_ip,index_claim,2017-10-10,2018-01-08,85,N,Y,IP,Acute
 33,pac_index_overlap,linked_claim,,,,,N,N,SNF,Other
 34,fromdate_outofrange,index_claim,index_claim,2018-01-10,2018-04-10,0,Y,Y,IP,Acute
-35,fromdate_outofrange,snf_case,index_claim,2018-01-10,2018-04-10,85,N,Y,SNF,Other
+35,fromdate_outofrange,snf_case,index_claim,2018-01-10,2018-04-10,64,N,Y,SNF,Other
 36,fromdate_outofrange,snf_case,index_claim,2018-01-10,2018-04-10,64,N,Y,SNF,Other
