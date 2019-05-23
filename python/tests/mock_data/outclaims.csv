@@ -32,3 +32,6 @@ sequencenumber,member_id,caseadmitid,mr_line,fromdate,todate,prm_fromdate_case,p
 31,pac_index_overlap,index_claim,I11a,2017-10-01,2017-10-10,2017-10-01,2017-10-10,,470
 32,pac_index_overlap,pac_ip,I11a,2018-01-03,2018-01-18,2018-01-03,2018-01-18,,004
 33,pac_index_overlap,linked_claim,I31,2018-01-30,2018-01-31,2018-01-30,2018-01-31,,000
+34,fromdate_outofrange,index_claim,I11a,2018-01-01,2018-01-10,2018-01-01,2018-01-10,,470
+35,fromdate_outofrange,snf_case,I31,2018-03-15,2018-04-14,2018-03-15,2018-05-14,,000
+36,fromdate_outofrange,snf_case,I31,2018-04-15,2018-05-14,2018-03-15,2018-05-14,,000
