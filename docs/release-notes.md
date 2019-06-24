@@ -2,8 +2,12 @@
 
 A non-exhaustive list of what has changed in a more readable form than a commit history.
 
+### 1.3.0
+  - Base `pac_claim_yn` off of `prm_fromdate_case` instead of `fromdate` for consistency across longer lengths of stay. 
+
 ### 1.2.0
   - Remove CCN/DRG override for PAC minor category
+  - Remove legacy SQL code
 
 ### 1.1.1
 
