@@ -9,3 +9,4 @@ prm_fromdate_case,date,true
 prm_todate_case,date,true
 prv_id_ccn,string,true
 drg,string,true
+prm_costs,long,true
