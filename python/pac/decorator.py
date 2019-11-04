@@ -114,6 +114,7 @@ def _collect_pac_eligible_ip_stays(
     ip_claims = claims_categorized.filter(
         (spark_funcs.col('pac_major_category') == 'IP')
         & (spark_funcs.col('pac_minor_category') == 'Acute')
+        & (spark_funcs.col('prm_costs') > 0)
     ).groupBy(
         'member_id',
         'caseadmitid',
