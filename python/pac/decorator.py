@@ -219,6 +219,7 @@ def _calc_discharge_disposition(
     ) -> DataFrame:
     """Calculate where discharge status of PAC Index Admission"""
     disch_window = Window().partitionBy(
+        'member_id',
         'pac_caseadmitid'
     ).orderBy(
         'prm_fromdate_case',
@@ -230,7 +231,7 @@ def _calc_discharge_disposition(
         on='member_id',
         how='left_outer',
     ).where(
-        (
+        ((
             (spark_funcs.col('pac_major_category') == 'HH') &
             (spark_funcs.datediff(
                 spark_funcs.col('prm_fromdate_case'),
@@ -249,7 +250,8 @@ def _calc_discharge_disposition(
                 0,
                 1
             ))
-        )
+        )) &
+        (spark_funcs.col('pac_caseadmitid') != spark_funcs.col('caseadmitid'))
     ).withColumn(
         'pac_disch_disp',
         spark_funcs.when(
@@ -289,7 +291,7 @@ def _calc_discharge_disposition(
 
     index_w_dd = ip_index_episodes.join(
         index_w_claims,
-        on='pac_caseadmitid',
+        on=['member_id', 'pac_caseadmitid'],
         how='left_outer'
     ).select(
         *[col for col in ip_index_episodes],
