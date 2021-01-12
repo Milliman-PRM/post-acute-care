@@ -2,7 +2,7 @@
 
 A non-exhaustive list of what has changed in a more readable form than a commit history.
 
-### 1.4.0
+### 1.5.0
   - Calculate discharge disposition of each pac episode
 
 ### 1.3.0
