@@ -2,6 +2,9 @@
 
 A non-exhaustive list of what has changed in a more readable form than a commit history.
 
+### 1.4.0
+  - Calculate discharge disposition of each pac episode
+
 ### 1.3.0
   - Base `pac_claim_yn` off of `prm_fromdate_case` instead of `fromdate` for consistency across longer lengths of stay. 
 
