@@ -213,7 +213,97 @@ def _find_index_admissions(
     )
     return ip_index_episodes
 
+def _calc_discharge_disposition(
+        ip_index_episodes,
+        claims_categorized,
+    ) -> DataFrame:
+    """Calculate where discharge status of PAC Index Admission"""
+    disch_window = Window().partitionBy(
+        'member_id',
+        'pac_caseadmitid'
+    ).orderBy(
+        'prm_fromdate_case',
+        'disch_disp_rank'
+    )
+    
+    index_w_claims = ip_index_episodes.join(
+        claims_categorized,
+        on='member_id',
+        how='left_outer',
+    ).where(
+        ((
+            (spark_funcs.col('pac_major_category') == 'HH') &
+            (spark_funcs.datediff(
+                spark_funcs.col('prm_fromdate_case'),
+                spark_funcs.col('pac_episode_start_date')
+            ).between(
+                0,
+                3
+            ))
+        ) |
+        (
+            (spark_funcs.col('pac_major_category') != 'Other') &
+            (spark_funcs.datediff(
+                spark_funcs.col('prm_fromdate_case'),
+                spark_funcs.col('pac_episode_start_date')
+            ).between(
+                0,
+                1
+            ))
+        )) &
+        (spark_funcs.col('pac_caseadmitid') != spark_funcs.col('caseadmitid'))
+    ).withColumn(
+        'pac_disch_disp',
+        spark_funcs.when(
+            spark_funcs.col('pac_major_category') == 'HH',
+            spark_funcs.lit('Home Health')
+        ).when(
+            spark_funcs.col('pac_major_category') == 'SNF',
+            spark_funcs.lit('Skilled Nursing Facility')
+        ).when(
+            spark_funcs.col('pac_minor_category') == 'Rehab',
+            spark_funcs.lit('Inpatient Rehab')
+        ).when(
+            spark_funcs.col('pac_minor_category') == 'Acute',
+            spark_funcs.lit('Acute Inpatient')
+        )
+    ).withColumn(
+        'disch_disp_rank',
+        spark_funcs.when(
+            spark_funcs.col('pac_major_category') == 'HH',
+            spark_funcs.lit(1)
+        ).when(
+            spark_funcs.col('pac_major_category') == 'SNF',
+            spark_funcs.lit(2)
+        ).when(
+            spark_funcs.col('pac_minor_category') == 'Rehab',
+            spark_funcs.lit(3)
+        ).when(
+            spark_funcs.col('pac_minor_category') == 'Acute',
+            spark_funcs.lit(4)
+        )        
+    ).withColumn(
+        'row_rank',
+        spark_funcs.row_number().over(disch_window)
+    ).where(
+        spark_funcs.col('row_rank') == 1
+    )
 
+    index_w_dd = ip_index_episodes.join(
+        index_w_claims,
+        on=['member_id', 'pac_caseadmitid'],
+        how='left_outer'
+    ).select(
+        *[col for col in ip_index_episodes],
+        spark_funcs.coalesce(
+            spark_funcs.col('pac_disch_disp'),
+            spark_funcs.lit('Home (self care)')
+        ).alias('pac_disch_disp')
+    )
+
+    return index_w_dd
+
+    
 def _decorate_claims_detail(
         claims_categorized,
         ip_index_episodes,
@@ -278,9 +368,14 @@ def calculate_post_acute_episodes(
         pac_eligible_ip,
         )
 
+    ip_index_w_dd = _calc_discharge_disposition(
+        ip_index_episodes,
+        claims_categorized,
+        )
+
     claims_decorated = _decorate_claims_detail(
         claims_categorized,
-        ip_index_episodes,
+        ip_index_w_dd,
         )
     return claims_decorated
 
