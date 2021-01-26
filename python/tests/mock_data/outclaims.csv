@@ -35,3 +35,8 @@ sequencenumber,member_id,caseadmitid,mr_line,fromdate,todate,prm_fromdate_case,p
 34,fromdate_outofrange,index_claim,I11a,2018-01-01,2018-01-10,2018-01-01,2018-01-10,,470,1
 35,fromdate_outofrange,snf_case,I31,2018-03-15,2018-04-14,2018-03-15,2018-05-14,,000,1
 36,fromdate_outofrange,snf_case,I31,2018-04-15,2018-05-14,2018-03-15,2018-05-14,,000,1
+37,pac_discharge_disposition,index_claim,I11a,2018-05-01,2018-05-05,2018-05-01,2018-05-05,,285,1
+38,pac_discharge_disposition,discharge_disp,I11b,2018-05-06,2018-05-08,2018-05-06,2018-05-08,,000,1
+39,disch_disp_rank,index_claim,I11a,2018-05-01,2018-05-05,2018-05-01,2018-05-05,,285,1
+40,disch_disp_rank,snf_claim,I31,2018-05-06,2018-05-08,2018-05-06,2018-05-08,,000,1
+41,disch_disp_rank,hh_claim,P82a,2018-05-06,2018-05-06,2018-05-06,2018-05-06,,000,1
